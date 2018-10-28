@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>VAdmins</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        function changeAllCheck(checkState) {
+            $('body input:checkbox').prop('checked', checkState);
+        }
+
+        function getCheckedId() {
+            spis = [];
+
+            $('input:checkbox:checked').each(function(){
+                if ($(this).attr('id') !== 'checkboxmain') {
+                    spis.push($(this).val());
+                }
+            });
+
+            return spis;
+        }
+
+        function onClickButDel() {
+            spis = getCheckedId();
+
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                url: '/delete',
+                data: JSON.stringify(spis),
+                success: function (data) {
+                    if (JSON.stringify(data).includes("true")) {
+                        for (var i = 0; i < spis.length; i++) {
+                            $('#data-table #'+spis[i]).remove();
+                        }
+                    }
+                    else {
+                        window.location.href = "/login";
+                    }
+                }
+            });
+        }
+
+        function onClickBut(b) {
+            spis = getCheckedId();
+
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                url: '/update?state=' + b,
+                data: JSON.stringify(spis),
+                success: function (data) {
+                    if (JSON.stringify(data).includes("true")) {
+                        for (var i = 0; i < spis.length; i++) {
+                            $('#data-table #'+spis[i]+' td[name=status] i').text(b ? "cancel" : "check_circle_outline");
+                        }
+                    }
+                    else {
+                        window.location.href = "/login";
+                    }
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+
+<div>
+
+
+    <div class="btn-toolbar float-left m-1" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group mr-2" role="group" aria-label="First group">
+            <button type="button" class="btn btn-primary" onclick="onClickBut(true)">Lock</button>
+            <button type="button" class="btn btn-primary" onclick="onClickBut(false)">Unlock</button>
+            <button type="button" class="btn btn-primary" onclick="onClickButDel(false)">Delete</button>
+        </div>
+    </div>
+
+    <div class="nav justify-content-end float-right m-1">
+        {{#userInfo}}
+        <span class="align-middle">Welcome "{{userInfo}}"</span>
+        {{/userInfo}}
+        <form class="ml-1" aria-label="Second group" action="/logout" method="post">
+            <button type="submit" class="btn btn-primary">Sign out</button>
+        </form>
+    </div>
+
+
+</div>
+<div>
+    <table class="table" id="data-table">
+
+        <tr>
+            <th scope="col"><input type="checkbox" id="checkboxmain" onclick="changeAllCheck($('#checkboxmain').prop('checked'))"></th>
+            <th scope="col">User name</th>
+            <th scope="col">Date registration</th>
+            <th scope="col">Date login</th>
+            <th scope="col">Status</th>
+        </tr>
+
+        {{#messages}}
+        <tr id="{{id}}">
+            <td><input type="checkbox" value="{{id}}"></td>
+            <td>{{username}}</td>
+            <td>{{dateRegistration}}</td>
+            <td>{{dateLogin}}</td>
+            <td name="status"><i class="material-icons">{{status}}</i></td>
+        </tr>
+        {{/messages}}
+
+    </table>
+</div>
+
+</body>
+</html>
